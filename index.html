@@ -1,7 +1,29 @@
 <!doctype html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b8d80"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><title>健管家</title></head><body>
 <header><b>HealthSync 健管家</b><button id="install">安裝到桌面</button></header>
 <main>
-<section id="health" class="page active"><div class="card"><h2>個人身體數據設定</h2><div class="grid"><label>身高 (cm)<input id="h" type="number"></label><label>體重 (kg)<input id="w" type="number"></label></div><label>每日熱量目標 (kcal)<input id="goal" type="number"></label><button id="save">儲存並計算 BMI</button></div><div class="card center"><small>BODY MASS INDEX</small><p>您的當前 BMI 指數</p><div id="bmi">--</div><span id="status">尚未計算</span></div><div class="card"><h2>今日熱量摘要</h2><p>已攝取：<b id="used">0</b> kcal</p><p>尚可攝取：<b id="left">0</b> kcal</p></div></section>
-<section id="plan" class="page"><div class="card protect"><div><h2>腿部受傷／行動不便保護模式</h2><p>開啟後排除跑跳、深蹲、負重及騎腳踏車。</p></div><input id="protect" type="checkbox"></div><h2>🏆 客製化運動方案</h2><div id="plans"></div></section>
-<section id="food" class="page"><div class="card"><h2>手動輸入飲食</h2><label>食物名稱<input id="foodName" placeholder="例如：牛肉麵、排骨便當"></label><div class="grid"><label>份量<select id="size"><option value=".8">小份</option><option value="1" selected>一般</option><option value="1.25">大份</option></select></label><label>數量<input id="qty" type="number" value="1" step=".5"></label></div><h3>內容物</h3><div id="components"></div><button id="add">＋ 新增內容物</button><button id="estimate">概算熱量</button><h2 id="result">尚未計算</h2><button id="saveFood">加入今日紀錄</button></div><div class="card"><h2>今日飲食紀錄</h2><div id="logs"></div><button id="clear">清除今日紀錄</button></div></section>
-</main><nav><button data-p="health" class="active">健康狀態</button><button data-p="plan">運動計畫</button><button data-p="food">手動輸入飲食</button></nav><script src="app.js"></script></body></html>
+<section id="health" class="page active">
+<div class="card"><h2>個人身體數據設定</h2><div class="grid"><label>身高 (cm)<input id="h" type="number"></label><label>體重 (kg)<input id="w" type="number"></label></div><label>每日熱量目標 (kcal)<input id="goal" type="number"></label><button id="saveProfile">儲存並計算 BMI</button></div>
+<div class="card center"><small>BODY MASS INDEX</small><div id="bmi">--</div><span id="status">尚未計算</span></div>
+<div class="card"><h2>今日熱量摘要</h2><p>已攝取：<b id="used">0</b> kcal</p><p>尚可攝取：<b id="left">0</b> kcal</p></div>
+</section>
+
+<section id="plan" class="page">
+<div class="card protect"><div><h2>腿部受傷／行動不便保護模式</h2><p>排除跑跳、深蹲、負重與騎腳踏車。</p></div><input id="protect" type="checkbox"></div>
+<div class="card"><h2>新增自訂運動動態圖</h2><label>運動名稱<input id="exerciseName" placeholder="例如：坐姿拳擊"></label><label>上傳 GIF／圖片<input id="exerciseFile" type="file" accept="image/*"></label><button id="saveExercise">儲存到本機運動圖庫</button></div>
+<div id="plans"></div>
+</section>
+
+<section id="food" class="page">
+<div class="card"><h2>手動輸入飲食</h2>
+<label>食物名稱<input id="foodName" list="foodSuggestions" placeholder="例如：艾草粿、全脂鮮乳"></label><datalist id="foodSuggestions"></datalist>
+<div class="grid"><label>份量描述<input id="portion" placeholder="例如：小碗、290ml、1個"></label><label>數量<input id="qty" type="number" value="1" step=".5"></label></div>
+<label>每份熱量（kcal）<input id="manualKcal" type="number" placeholder="直接輸入查得熱量"></label>
+<div class="grid"><button id="lookup">從我的資料庫帶入</button><button id="saveFoodItem">儲存為常用食物</button></div>
+<button id="calculate">計算本餐熱量</button><h2 id="result">尚未計算</h2><button id="saveLog">加入今日紀錄</button></div>
+
+<div class="card"><h2>我的食物資料庫</h2><p>CSV格式：名稱,份量,熱量</p><input id="csvFile" type="file" accept=".csv,text/csv"><button id="importCsv">匯入 CSV</button><button id="exportCsv">匯出資料庫</button><div id="myFoods"></div></div>
+<div class="card"><h2>今日飲食紀錄</h2><div id="logs"></div><button id="clear">清除今日紀錄</button></div>
+</section>
+</main>
+<nav><button data-p="health" class="active">健康狀態</button><button data-p="plan">運動計畫</button><button data-p="food">手動輸入飲食</button></nav>
+<script src="app.js"></script></body></html>
