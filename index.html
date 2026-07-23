@@ -1,29 +1,189 @@
-<!doctype html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b8d80"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><title>健管家</title></head><body>
-<header><b>HealthSync 健管家</b><button id="install">安裝到桌面</button></header>
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b8d80">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="styles.css">
+<title>健管家</title>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">H</div>
+    <div><b>HealthSync 健管家</b><small>傷後保護・熱量管理・低衝擊運動</small></div>
+  </div>
+  <button id="install" class="install-btn">安裝到桌面</button>
+</header>
+
 <main>
 <section id="health" class="page active">
-<div class="card"><h2>個人身體數據設定</h2><div class="grid"><label>身高 (cm)<input id="h" type="number"></label><label>體重 (kg)<input id="w" type="number"></label></div><label>每日熱量目標 (kcal)<input id="goal" type="number"></label><button id="saveProfile">儲存並計算 BMI</button></div>
-<div class="card center"><small>BODY MASS INDEX</small><div id="bmi">--</div><span id="status">尚未計算</span></div>
-<div class="card"><h2>今日熱量摘要</h2><p>已攝取：<b id="used">0</b> kcal</p><p>尚可攝取：<b id="left">0</b> kcal</p></div>
+  <div class="card">
+    <h2>個人身體數據設定</h2>
+    <div class="grid">
+      <label>身高 (cm)<input id="h" type="number"></label>
+      <label>體重 (kg)<input id="w" type="number"></label>
+    </div>
+    <label>每日熱量目標 (kcal)<input id="goal" type="number"></label>
+    <button id="saveProfile" class="primary">儲存並計算 BMI</button>
+  </div>
+
+  <div class="card center">
+    <small class="eyebrow">BODY MASS INDEX</small>
+    <p>您的當前 BMI 指數</p>
+    <div id="bmi" class="bmi">--</div>
+    <span id="status" class="status">尚未計算</span>
+  </div>
+
+  <div id="monthlySummary" class="card"></div>
 </section>
 
 <section id="plan" class="page">
-<div class="card protect"><div><h2>腿部受傷／行動不便保護模式</h2><p>排除跑跳、深蹲、負重與騎腳踏車。</p></div><input id="protect" type="checkbox"></div>
-<div class="card"><h2>新增自訂運動動態圖</h2><label>運動名稱<input id="exerciseName" placeholder="例如：坐姿拳擊"></label><label>上傳 GIF／圖片<input id="exerciseFile" type="file" accept="image/*"></label><button id="saveExercise">儲存到本機運動圖庫</button></div>
-<div id="plans"></div>
+  <div class="card protect-card">
+    <div>
+      <h2>腿部受傷／行動不便保護模式</h2>
+      <p>開啟後排除跑跳、深蹲、負重、快速登階及騎腳踏車。</p>
+    </div>
+    <label class="switch"><input id="protect" type="checkbox"><span></span></label>
+  </div>
+
+  <div class="card compact-library">
+    <div class="section-head">
+      <div>
+        <h2>內建運動項目資料庫</h2>
+        <p>點選項目後，顯示訓練規格、動作要領與記錄欄位。</p>
+      </div>
+      <span class="badge">低衝擊優先</span>
+    </div>
+    <div id="exerciseChips" class="chips"></div>
+  </div>
+
+  <div id="selectedExercise"></div>
+
+  <details class="card custom-panel">
+    <summary>＋ 新增或管理自訂運動</summary>
+    <label>運動名稱<input id="exerciseName" placeholder="例如：坐姿拳擊"></label>
+    <label>上傳 GIF／圖片<input id="exerciseFile" type="file" accept="image/*"></label>
+    <div class="grid">
+      <label>建議分鐘<input id="customMinutes" type="number" value="10"></label>
+      <label>預估消耗 kcal<input id="customBurn" type="number" value="50"></label>
+    </div>
+    <button id="saveExercise" class="primary">儲存到本機運動圖庫</button>
+    <div id="customExerciseList"></div>
+  </details>
 </section>
 
 <section id="food" class="page">
-<div class="card"><h2>手動輸入飲食</h2>
-<label>食物名稱<input id="foodName" list="foodSuggestions" placeholder="例如：艾草粿、全脂鮮乳"></label><datalist id="foodSuggestions"></datalist>
-<div class="grid"><label>份量描述<input id="portion" placeholder="例如：小碗、290ml、1個"></label><label>數量<input id="qty" type="number" value="1" step=".5"></label></div>
-<label>每份熱量（kcal）<input id="manualKcal" type="number" placeholder="直接輸入查得熱量"></label>
-<div class="grid"><button id="lookup">從我的資料庫帶入</button><button id="saveFoodItem">儲存為常用食物</button></div>
-<button id="calculate">計算本餐熱量</button><h2 id="result">尚未計算</h2><button id="saveLog">加入今日紀錄</button></div>
+  <div class="calorie-hero">
+    <div class="hero-top">
+      <div>
+        <small>CALORIC DEFICIT TRACKER</small>
+        <h2>今日熱量赤字與進食進度</h2>
+      </div>
+      <div class="goal-box"><span>赤字標準</span><b id="heroGoal">1800 kcal</b></div>
+    </div>
+    <div class="hero-values">
+      <span>已攝取：<b id="heroUsed">0 kcal</b></span>
+      <span>剩餘目標：<b id="heroLeft">1800 kcal</b></span>
+    </div>
+    <div class="progress"><i id="foodProgress"></i></div>
+    <p id="heroMessage">尚未加入今日餐點。</p>
+  </div>
 
-<div class="card"><h2>我的食物資料庫</h2><p>CSV格式：名稱,份量,熱量</p><input id="csvFile" type="file" accept=".csv,text/csv"><button id="importCsv">匯入 CSV</button><button id="exportCsv">匯出資料庫</button><div id="myFoods"></div></div>
-<div class="card"><h2>今日飲食紀錄</h2><div id="logs"></div><button id="clear">清除今日紀錄</button></div>
+  <div class="card diet-controls">
+    <p>💡 已套用之飲食控制方案（可點擊切換）</p>
+    <div class="diet-buttons">
+      <button id="fastingBtn" class="outline active">◷ 168 斷食法</button>
+      <button id="smoothieBtn" class="outline">🥦 綠拿鐵計畫</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-head">
+      <div>
+        <h2>＋ 精密手動飲食輸入</h2>
+        <p>免付費 API；內建資料庫與您的常用食物可重複使用。</p>
+      </div>
+      <span class="badge">內建熱量資料庫</span>
+    </div>
+
+    <div class="chips-title">點選快速帶入熱量：</div>
+    <div id="foodChips" class="chips"></div>
+
+    <label>飲食名稱
+      <input id="foodName" list="foodSuggestions" placeholder="例如：牛肉麵、排骨便當、艾草粿">
+    </label>
+    <datalist id="foodSuggestions"></datalist>
+
+    <div class="grid">
+      <label>重量／規格（可不填）<input id="portion" placeholder="小碗、290ml、160公克"></label>
+      <label>數量<input id="qty" type="number" value="1" step=".5"></label>
+    </div>
+
+    <label>每份熱量（kcal）
+      <input id="manualKcal" type="number" placeholder="可直接輸入；或點上方資料庫帶入">
+    </label>
+
+    <div class="compound-toggle">
+      <div>
+        <b>多菜色複合餐點模式</b>
+        <small>便當、自助餐可逐項加入內容物，再自動加總。</small>
+      </div>
+      <label class="switch"><input id="compoundMode" type="checkbox"><span></span></label>
+    </div>
+
+    <div id="compoundArea" class="compound-area hidden">
+      <div id="components"></div>
+      <button id="addComponent" class="soft">＋ 新增內容物</button>
+    </div>
+
+    <div class="grid">
+      <button id="lookup" class="soft">從我的資料庫帶入</button>
+      <button id="saveFoodItem" class="soft">儲存為常用食物</button>
+    </div>
+    <button id="calculate" class="primary">計算本餐熱量</button>
+    <div id="result" class="estimate">尚未計算</div>
+    <button id="saveLog" class="secondary">加入今日紀錄</button>
+  </div>
+
+  <details class="card library-panel">
+    <summary>管理我的食物資料庫與 CSV</summary>
+    <p>CSV 格式：名稱,份量,熱量</p>
+    <input id="csvFile" type="file" accept=".csv,text/csv">
+    <div class="grid">
+      <button id="importCsv" class="soft">匯入 CSV</button>
+      <button id="exportCsv" class="soft">匯出資料庫</button>
+    </div>
+    <div id="myFoods"></div>
+  </details>
+
+  <div class="card">
+    <h2>今日飲食紀錄</h2>
+    <div id="logs"></div>
+    <button id="clear" class="danger">只清除今日紀錄</button>
+  </div>
 </section>
 </main>
-<nav><button data-p="health" class="active">健康狀態</button><button data-p="plan">運動計畫</button><button data-p="food">手動輸入飲食</button></nav>
-<script src="app.js"></script></body></html>
+
+<nav>
+  <button data-p="health" class="active">健康狀態</button>
+  <button data-p="plan">運動計畫</button>
+  <button data-p="food">手動輸入飲食</button>
+</nav>
+
+<template id="componentTemplate">
+  <div class="component-row">
+    <input class="comp-name" placeholder="內容物，例如：滷排骨">
+    <input class="comp-amount" type="number" value="30">
+    <select class="comp-unit">
+      <option>公克</option><option>片</option><option>顆</option><option>份</option>
+    </select>
+    <input class="comp-kcal" type="number" placeholder="kcal">
+    <button class="remove">×</button>
+  </div>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>
