@@ -1,0 +1,1 @@
+新增底部『歷史紀錄』分頁，可按日期查看每日飲食、運動消耗與淨攝取；並有本月逐日摘要。更新 GitHub 根目錄的 index.html、styles.css、app.js、sw.js 即可。

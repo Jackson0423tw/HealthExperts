@@ -1,4 +1,4 @@
-const C='healthsync-v2-3';
+const C='healthsync-v2-4';
 const A=['./','index.html','styles.css','app.js','manifest.webmanifest','assets/icon-192.png','assets/icon-512.png','assets/side-crunch.gif'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(A).catch(()=>{}))));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==C).map(k=>caches.delete(k))))));

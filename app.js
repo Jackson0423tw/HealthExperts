@@ -1,4 +1,22 @@
 
+function renderHistory(dateValue){
+ const date=dateValue||today();
+ if($('historyDate'))historyDate.value=date;
+ const fs=logs.filter(x=>x.date===date),es=exerciseLogs.filter(x=>x.date===date);
+ const f=fs.reduce((a,b)=>a+(+b.kcal||0),0),e=es.reduce((a,b)=>a+(+b.burn||0),0);
+ dayFoodTotal.textContent=f;dayBurnTotal.textContent=e;dayNetTotal.textContent=f-e;
+ historyFoodList.innerHTML=fs.length?fs.map(x=>`<div class="history-row"><span>${x.name}<br><small>${x.portion||''}</small></span><b>${x.kcal} kcal</b></div>`).join(''):'<p class="muted">當日沒有飲食紀錄。</p>';
+ historyExerciseList.innerHTML=es.length?es.map(x=>`<div class="history-row"><span>${x.name}<br><small>${x.minutes||0} 分鐘</small></span><b>${x.burn||0} kcal</b></div>`).join(''):'<p class="muted">當日沒有運動紀錄。</p>';
+}
+function renderDailySummary(monthValue){
+ const month=monthValue||monthKey();if($('historyMonth'))historyMonth.value=month;
+ const ds=new Set();logs.filter(x=>x.date.startsWith(month)).forEach(x=>ds.add(x.date));exerciseLogs.filter(x=>x.date.startsWith(month)).forEach(x=>ds.add(x.date));
+ const rows=[...ds].sort().reverse();
+ dailyBars.innerHTML=rows.length?rows.map(d=>{const f=logs.filter(x=>x.date===d).reduce((a,b)=>a+(+b.kcal||0),0),e=exerciseLogs.filter(x=>x.date===d).reduce((a,b)=>a+(+b.burn||0),0);return `<div class="day-bar"><button data-date="${d}">${d.slice(5)}</button><span class="food">飲食 ${f}</span><span class="burn">運動 ${e}</span><span class="net">淨值 ${f-e}</span></div>`}).join(''):'<p class="muted">本月尚無紀錄。</p>';
+ dailyBars.querySelectorAll('button').forEach(b=>b.onclick=()=>{renderHistory(b.dataset.date);window.scrollTo({top:0,behavior:'smooth'})});
+}
+
+
 const $=id=>document.getElementById(id);
 const get=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
 const set=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
@@ -51,7 +69,7 @@ protect.onchange=()=>{profile.protect=protect.checked;set('profile',profile);ren
 
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
  document.querySelectorAll('nav button,.page').forEach(x=>x.classList.remove('active'));
- b.classList.add('active');$(b.dataset.p).classList.add('active');
+ b.classList.add('active');$(b.dataset.p).classList.add('active');if(b.dataset.p==='history'){renderHistory(historyDate.value||today());renderDailySummary(historyMonth.value||monthKey());}
 });
 
 function renderFoodLibrary(){
@@ -109,7 +127,7 @@ calculate.onclick=()=>{
 saveLog.onclick=()=>{
  if(!current)return alert('請先計算');
  logs.push({date:today(),name:foodName.value||'自訂餐點',portion:portion.value,kcal:current});
- set('logs',logs);renderLogs();renderMonthly();alert('已加入今日紀錄');
+ set('logs',logs);renderLogs();renderMonthly();renderHistory(today());renderDailySummary(monthKey());alert('已加入今日紀錄');
 };
 clear.onclick=()=>{
  if(!confirm('只清除今日飲食紀錄，過去資料仍保留。確定嗎？'))return;
@@ -160,7 +178,7 @@ function renderSelectedExercise(e){
  <p class="warm">溫馨提醒：${e.remind}</p><button id="recordExercise" class="primary">記錄本次運動</button></div></article>`;
  recordExercise.onclick=()=>{
    exerciseLogs.push({date:today(),name:e.name,minutes:+recordMinutes.value||0,burn:+recordBurn.value||0});
-   set('exerciseLogs',exerciseLogs);renderMonthly();alert('已記錄本次運動');
+   set('exerciseLogs',exerciseLogs);renderMonthly();renderHistory(today());renderDailySummary(monthKey());alert('已記錄本次運動');
  };
 }
 saveExercise.onclick=()=>{
@@ -193,4 +211,4 @@ let promptInstall;install.hidden=true;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptInstall=e;install.hidden=false});
 install.onclick=async()=>{if(promptInstall){promptInstall.prompt();await promptInstall.userChoice;promptInstall=null}else alert('請從瀏覽器選單選擇「加到主畫面」')};
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
-load();
+if($('historyDate')){historyDate.value=today();historyDate.onchange=()=>renderHistory(historyDate.value)}if($('historyMonth')){historyMonth.value=monthKey();historyMonth.onchange=()=>renderDailySummary(historyMonth.value)}renderHistory(today());renderDailySummary(monthKey());load();

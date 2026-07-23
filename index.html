@@ -164,12 +164,22 @@
     <button id="clear" class="danger">只清除今日紀錄</button>
   </div>
 </section>
+
+<section id="history" class="page">
+<div class="card"><div class="section-head"><div><h2>每日紀錄查詢</h2><p>選擇日期，查看當日飲食攝取、運動消耗及淨攝取熱量。</p></div></div>
+<label>查詢日期<input id="historyDate" type="date"></label>
+<div class="history-summary"><div><b id="dayFoodTotal">0</b><span>飲食 kcal</span></div><div><b id="dayBurnTotal">0</b><span>運動 kcal</span></div><div><b id="dayNetTotal">0</b><span>淨攝取 kcal</span></div></div></div>
+<div class="card"><h2>當日飲食明細</h2><div id="historyFoodList"></div></div>
+<div class="card"><h2>當日運動明細</h2><div id="historyExerciseList"></div></div>
+<div class="card"><div class="section-head"><div><h2>本月逐日摘要</h2><p>點日期即可查看當天明細。</p></div><input id="historyMonth" type="month"></div><div id="dailyBars" class="daily-list"></div></div>
+</section>
+
 </main>
 
 <nav>
   <button data-p="health" class="active">健康狀態</button>
   <button data-p="plan">運動計畫</button>
-  <button data-p="food">手動輸入飲食</button>
+  <button data-p="food">手動輸入飲食</button><button data-p="history">歷史紀錄</button>
 </nav>
 
 <template id="componentTemplate">
