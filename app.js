@@ -5,8 +5,8 @@ function renderHistory(dateValue){
  const fs=logs.filter(x=>x.date===date),es=exerciseLogs.filter(x=>x.date===date);
  const f=fs.reduce((a,b)=>a+(+b.kcal||0),0),e=es.reduce((a,b)=>a+(+b.burn||0),0);
  dayFoodTotal.textContent=f;dayBurnTotal.textContent=e;dayNetTotal.textContent=f-e;
- historyFoodList.innerHTML=fs.length?fs.map(x=>`<div class="history-row"><span>${x.name}<br><small>${x.portion||''}</small></span><b>${x.kcal} kcal</b></div>`).join(''):'<p class="muted">當日沒有飲食紀錄。</p>';
- historyExerciseList.innerHTML=es.length?es.map(x=>`<div class="history-row"><span>${x.name}<br><small>${x.minutes||0} 分鐘</small></span><b>${x.burn||0} kcal</b></div>`).join(''):'<p class="muted">當日沒有運動紀錄。</p>';
+ historyFoodList.innerHTML=fs.length?fs.map(x=>`<div class="history-row"><span>${x.name}<br><small>${x.time||''} ${x.portion||''}</small></span><b>${x.kcal} kcal</b></div>`).join(''):'<p class="muted">當日沒有飲食紀錄。</p>';
+ historyExerciseList.innerHTML=es.length?es.map(x=>`<div class="history-row"><span>${x.name}<br><small>${x.time||''}｜${x.minutes||0} 分鐘</small></span><b>${x.burn||0} kcal</b></div>`).join(''):'<p class="muted">當日沒有運動紀錄。</p>';
 }
 function renderDailySummary(monthValue){
  const month=monthValue||monthKey();if($('historyMonth'))historyMonth.value=month;
@@ -41,15 +41,21 @@ let foods=get('foods',[
 ]);
 let customExercises=get('customExercises',[]);
 let current=0;
-let selectedExerciseIndex=0;
+let selectedExerciseIndex=0;let activeIntensity='all';
 
 const builtinExercises=[
- {name:'慢走',tag:'低強度・復健友善',media:'🚶',dose:'5～15分鐘',burn:60,steps:['選擇平坦安全路面。','步幅縮小，不追求速度。','可分段完成。'],remind:'左腳疲勞、拖步加重或腫脹增加即停止。'},
- {name:'側身卷腹',tag:'低衝擊・核心',media:'assets/side-crunch.gif',dose:'每側8～10次 × 2組',burn:45,steps:['膝蓋只彎至可接受角度。','雙手輕扶頭部，不拉扯頸部。','受傷腿不要用力推地。'],remind:'腰部、膝蓋或小腿不適即停止。'},
- {name:'坐姿上肢',tag:'低衝擊・上肢',media:'🪑',dose:'10～12分鐘',burn:70,steps:['坐穩有靠背椅子。','先徒手抬臂、划船與推舉。','保持呼吸，不前傾失衡。'],remind:'現階段不安排下肢負重。'},
- {name:'坐姿拳擊',tag:'中強度・坐姿心肺',media:'🥊',dose:'30秒 × 6回合',burn:90,steps:['雙腳穩定放置。','拳擊動作保持在舒適範圍。','組間休息45秒。'],remind:'若身體前傾、呼吸不順或腿部疲勞即停止。'},
- {name:'仰躺核心',tag:'低衝擊・核心啟動',media:'🧘',dose:'8～10分鐘',burn:55,steps:['保持自然呼吸。','不要求雙腳懸空。','不超過膝蓋可接受活動角度。'],remind:'若腰部或受傷腿出力明顯，降低幅度。'},
- {name:'伸展放鬆',tag:'恢復・柔軟度',media:'🤸',dose:'8分鐘',burn:25,steps:['以無痛範圍為原則。','動作緩慢、不彈震。','踝足動作依治療師指示。'],remind:'若腫脹或麻木加劇，停止並告知治療師。'}
+ {name:'慢走',level:'low',tag:'低強度・復健友善',media:'🚶',dose:'5～15分鐘',burn:60,steps:['選擇平坦安全路面。','步幅縮小，不追求速度。','可分段完成。'],remind:'左腳疲勞、拖步加重或腫脹增加即停止。'},
+ {name:'側身卷腹',level:'low',tag:'低強度・核心',media:'assets/side-crunch.gif',dose:'每側8～10次 × 2組',burn:45,steps:['膝蓋只彎至可接受角度。','雙手輕扶頭部，不拉扯頸部。','受傷腿不要用力推地。'],remind:'腰部、膝蓋或小腿不適即停止。'},
+ {name:'坐姿上肢訓練',level:'low',tag:'低強度・上肢',media:'🪑',dose:'10～12分鐘',burn:70,steps:['坐穩有靠背椅子。','先徒手抬臂、划船與推舉。','保持呼吸，不前傾失衡。'],remind:'現階段不安排下肢負重。'},
+ {name:'仰躺核心啟動',level:'low',tag:'低強度・核心啟動',media:'🧘',dose:'8～10分鐘',burn:55,steps:['保持自然呼吸。','不要求雙腳懸空。','不超過膝蓋可接受活動角度。'],remind:'若腰部或受傷腿出力明顯，降低幅度。'},
+ {name:'伸展放鬆',level:'low',tag:'低強度・恢復',media:'🤸',dose:'8分鐘',burn:25,steps:['以無痛範圍為原則。','動作緩慢、不彈震。','踝足動作依治療師指示。'],remind:'若腫脹或麻木加劇，停止並告知治療師。'},
+ {name:'分段健走',level:'mid',tag:'中強度・分段心肺',media:'🚶‍♂️',dose:'10分鐘 × 2回',burn:120,steps:['僅在慢走無不適後進行。','兩回合中間坐下休息。','保持仍能說完整句子的速度。'],remind:'左腳疲勞、拖步或步態惡化即停止。'},
+ {name:'坐姿拳擊',level:'mid',tag:'中強度・坐姿心肺',media:'🥊',dose:'30秒 × 6回合',burn:90,steps:['雙腳穩定放置。','拳擊動作保持舒適範圍。','組間休息45秒。'],remind:'若身體前傾、呼吸不順或腿部疲勞即停止。'},
+ {name:'坐姿上肢循環',level:'mid',tag:'中強度・上肢循環',media:'💪',dose:'12～15分鐘',burn:105,steps:['徒手推舉、划船、側平舉依序循環。','每動作30秒。','回合間休息60秒。'],remind:'避免持重；肩頸疼痛或麻木時停止。'},
+ {name:'核心循環',level:'mid',tag:'中強度・核心循環',media:'🧘‍♂️',dose:'12分鐘',burn:95,steps:['側身卷腹、腹式呼吸與溫和核心收縮循環。','不要求雙腿懸空。','每回合後休息。'],remind:'腰部或受傷腿代償時降低次數。'},
+ {name:'坐姿拳擊間歇',level:'high',tag:'高強度・保護模式',media:'🥊',dose:'40秒 × 8回合',burn:145,steps:['提高上肢節奏而非增加腿部負荷。','雙腳保持固定。','回合間休息40秒。'],remind:'保護模式下仍不跑、不跳；呼吸不順立即停止。'},
+ {name:'上肢間歇循環',level:'high',tag:'高強度・上肢間歇',media:'💪',dose:'15～18分鐘',burn:160,steps:['徒手快速推舉、划船及拳擊輪替。','每動作40秒。','每輪休息60秒。'],remind:'不使用重物；肩頸、胸部不適即停止。'},
+ {name:'核心間歇',level:'high',tag:'高強度・核心間歇',media:'🧘',dose:'15分鐘',burn:130,steps:['核心收縮與側身卷腹交替。','增加組數，不增加膝蓋彎曲。','維持可控制的動作速度。'],remind:'腰部疼痛、腿部出力或疲勞明顯時立即降階。'}
 ];
 
 function calcBMI(){
@@ -59,7 +65,7 @@ function calcBMI(){
 }
 function load(){
  h.value=profile.h;w.value=profile.w;goal.value=profile.goal;protect.checked=profile.protect;
- calcBMI();renderFoodLibrary();renderLogs();renderExerciseLibrary();renderMonthly();renderCustomExerciseList();
+ calcBMI();if($('foodRecordDate'))foodRecordDate.value=today();renderFoodLibrary();renderLogs();renderExerciseLibrary();renderMonthly();renderCustomExerciseList();
 }
 saveProfile.onclick=()=>{
  profile={h:+h.value,w:+w.value,goal:+goal.value,protect:protect.checked};
@@ -126,8 +132,8 @@ calculate.onclick=()=>{
 };
 saveLog.onclick=()=>{
  if(!current)return alert('請先計算');
- logs.push({date:today(),name:foodName.value||'自訂餐點',portion:portion.value,kcal:current});
- set('logs',logs);renderLogs();renderMonthly();renderHistory(today());renderDailySummary(monthKey());alert('已加入今日紀錄');
+ logs.push({date:foodRecordDate.value||today(),time:foodRecordTime.value||'',name:foodName.value||'自訂餐點',portion:portion.value,kcal:current});
+ set('logs',logs);renderLogs();renderMonthly();renderHistory(foodRecordDate.value||today());renderDailySummary((foodRecordDate.value||today()).slice(0,7));alert('已加入所選日期紀錄');
 };
 clear.onclick=()=>{
  if(!confirm('只清除今日飲食紀錄，過去資料仍保留。確定嗎？'))return;
@@ -136,7 +142,7 @@ clear.onclick=()=>{
 function renderLogs(){
  const t=logs.filter(x=>x.date===today()),sum=t.reduce((a,b)=>a+b.kcal,0);
  logsEl=$('logs');
- logsEl.innerHTML=t.length?t.map(x=>`<div class="log"><span>${x.name}<br><small>${x.portion||''}</small></span><b>${x.kcal} kcal</b></div>`).join(''):'尚未加入今日餐點。';
+ logsEl.innerHTML=t.length?t.map(x=>`<div class="log"><span>${x.name}<br><small>${x.time||''} ${x.portion||''}</small></span><b>${x.kcal} kcal</b></div>`).join(''):'尚未加入今日餐點。';
  const goalVal=+profile.goal||1800,leftVal=Math.max(0,goalVal-sum);
  heroGoal.textContent=goalVal+' kcal';heroUsed.textContent=sum+' kcal';heroLeft.textContent=leftVal+' kcal';
  foodProgress.style.width=Math.min(100,sum/goalVal*100)+'%';
@@ -160,13 +166,16 @@ exportCsv.onclick=()=>{
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='我的食物熱量資料庫.csv';a.click();
 };
 
-function exerciseAll(){return [...builtinExercises,...customExercises.map(x=>({name:x.name,tag:'自訂運動',media:x.data,dose:(x.minutes||10)+'分鐘',burn:x.burn||0,steps:['依個人設定完成。'],remind:'依身體狀況量力而為。'}))]}
+function exerciseAll(){return [...builtinExercises,...customExercises.map(x=>({name:x.name,level:'custom',tag:'自訂運動',media:x.data,dose:(x.minutes||10)+'分鐘',burn:x.burn||0,steps:['依個人設定完成。'],remind:'依身體狀況量力而為。'}))]}
 function renderExerciseLibrary(){
  const all=exerciseAll();
- exerciseChips.innerHTML=all.map((e,i)=>`<button class="chip ${i===selectedExerciseIndex?'selected':''}" data-i="${i}">${e.name}</button>`).join('');
+ const filtered=all.map((e,i)=>({e,i})).filter(x=>activeIntensity==='all'||x.e.level===activeIntensity||x.e.level==='custom');
+ if(!filtered.some(x=>x.i===selectedExerciseIndex))selectedExerciseIndex=filtered.length?filtered[0].i:0;
+ exerciseChips.innerHTML=filtered.map(x=>`<button class="chip ${x.i===selectedExerciseIndex?'selected':''}" data-i="${x.i}"><span class="level-label">${x.e.level==='low'?'低':x.e.level==='mid'?'中':x.e.level==='high'?'高':'自訂'}</span>${x.e.name}</button>`).join('');
  exerciseChips.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{selectedExerciseIndex=+b.dataset.i;renderExerciseLibrary()});
- renderSelectedExercise(all[selectedExerciseIndex]||all[0]);
+ renderSelectedExercise(all[selectedExerciseIndex]||filtered[0]?.e);
 }
+document.querySelectorAll('.intensity').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.intensity').forEach(x=>x.classList.remove('active'));btn.classList.add('active');activeIntensity=btn.dataset.level;renderExerciseLibrary()});
 function renderSelectedExercise(e){
  if(!e){selectedExercise.innerHTML='';return}
  const isImg=(e.media||'').startsWith('data:')||(e.media||'').includes('/');
@@ -174,11 +183,11 @@ function renderSelectedExercise(e){
  selectedExercise.innerHTML=`<article class="exercise-detail">
  <div class="exercise-head"><div class="exercise-media">${media}</div><div><span class="badge">${e.tag}</span><h3>${e.name}</h3><b>${e.dose}</b><p>預估消耗：約 ${e.burn} kcal</p></div></div>
  <div class="exercise-spec"><b>訓練規格與動作要領</b><ol>${e.steps.map(x=>`<li>${x}</li>`).join('')}</ol>
- <div class="grid"><label>實際運動分鐘<input id="recordMinutes" type="number" value="${parseInt(e.dose)||10}"></label><label>本次消耗 kcal<input id="recordBurn" type="number" value="${e.burn}"></label></div>
+ <div class="grid"><label>實際運動分鐘<input id="recordMinutes" type="number" value="${parseInt(e.dose)||10}"></label><label>本次消耗 kcal<input id="recordBurn" type="number" value="${e.burn}"></label></div><div class="grid record-date-box"><label>實際運動日期<input id="exerciseRecordDate" type="date" value="${today()}"></label><label>實際運動時間<input id="exerciseRecordTime" type="time"></label></div>
  <p class="warm">溫馨提醒：${e.remind}</p><button id="recordExercise" class="primary">記錄本次運動</button></div></article>`;
  recordExercise.onclick=()=>{
-   exerciseLogs.push({date:today(),name:e.name,minutes:+recordMinutes.value||0,burn:+recordBurn.value||0});
-   set('exerciseLogs',exerciseLogs);renderMonthly();renderHistory(today());renderDailySummary(monthKey());alert('已記錄本次運動');
+   exerciseLogs.push({date:exerciseRecordDate.value||today(),time:exerciseRecordTime.value||'',name:e.name,minutes:+recordMinutes.value||0,burn:+recordBurn.value||0});
+   set('exerciseLogs',exerciseLogs);renderMonthly();renderHistory(exerciseRecordDate.value||today());renderDailySummary((exerciseRecordDate.value||today()).slice(0,7));alert('已記錄本次運動');
  };
 }
 saveExercise.onclick=()=>{

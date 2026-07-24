@@ -1,0 +1,1 @@
+V2.5：恢復低／中／高強度運動分類；保護模式下高強度仍不跑不跳；飲食與運動皆可補登日期及時間。更新 GitHub 根目錄 index.html、styles.css、app.js、sw.js。

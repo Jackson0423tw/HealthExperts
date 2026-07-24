@@ -17,3 +17,5 @@ nav{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;box-sha
 .day-bar button{border:0;background:transparent;color:#087b70;text-align:left;font-weight:800;padding:0}
 .day-bar .food{color:#334155}.day-bar .burn{color:#087b70}.day-bar .net{color:#b45309}
 @media(max-width:420px){.day-bar{grid-template-columns:78px 1fr 1fr}.day-bar .net{grid-column:2/4}}
+
+.intensity-tabs{display:flex;gap:7px;overflow:auto;margin:10px 0}.intensity{border:1px solid #dfe6e8;background:#fff;color:#65717d;border-radius:999px;padding:8px 12px;white-space:nowrap}.intensity.active{background:#087b70;color:#fff;border-color:#087b70}.record-date-box{background:#f7faf9;border-radius:14px;padding:10px;margin-top:10px}.level-label{display:inline-block;border-radius:10px;padding:3px 7px;font-size:10px;font-weight:800;background:#edf8f6;color:#087b70;margin-right:4px}

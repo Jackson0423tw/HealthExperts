@@ -56,7 +56,9 @@
       </div>
       <span class="badge">低衝擊優先</span>
     </div>
-    <div id="exerciseChips" class="chips"></div>
+    <div class="intensity-tabs">
+<button class="intensity active" data-level="all">全部</button><button class="intensity" data-level="low">低強度</button><button class="intensity" data-level="mid">中強度</button><button class="intensity" data-level="high">高強度</button>
+</div><div id="exerciseChips" class="chips"></div>
   </div>
 
   <div id="selectedExercise"></div>
@@ -144,7 +146,7 @@
     </div>
     <button id="calculate" class="primary">計算本餐熱量</button>
     <div id="result" class="estimate">尚未計算</div>
-    <button id="saveLog" class="secondary">加入今日紀錄</button>
+    <div class="grid record-date-box"><label>實際用餐日期<input id="foodRecordDate" type="date"></label><label>實際用餐時間<input id="foodRecordTime" type="time"></label></div><button id="saveLog" class="secondary">加入所選日期紀錄</button>
   </div>
 
   <details class="card library-panel">
