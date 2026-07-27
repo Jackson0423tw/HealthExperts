@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b8d80">
-<link rel="manifest" href="manifest.webmanifest?v=33">
-<link rel="stylesheet" href="styles.css?v=33">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="styles.css">
 <title>健管家</title>
 </head>
 <body>
@@ -40,48 +40,40 @@
 </section>
 
 <section id="plan" class="page">
-  <div class="plan-page-head">
-    <h2>運動計畫</h2>
-    <span class="help-dot" title="依強度挑選適合的運動項目">?</span>
-  </div>
-
-  <div class="plan-layout">
-    <div class="plan-main">
-      <div class="card database-card">
-        <div class="section-head">
-          <div>
-            <h2>運動資料庫</h2>
-            <p>先從左側挑選想做的運動，再於右側查看說明、記錄與更換圖示。</p>
-          </div>
-        </div>
-        <div class="intensity-tabs">
-          <button class="intensity active" data-level="all">全部</button>
-          <button class="intensity" data-level="low">低強度</button>
-          <button class="intensity" data-level="mid">中強度</button>
-          <button class="intensity" data-level="high">高強度</button>
-        </div>
-        <div id="exerciseSections"></div>
-      </div>
-
-      <details class="card custom-panel">
-        <summary>＋ 新增或管理自訂運動</summary>
-        <label>運動名稱<input id="exerciseName" placeholder="例如：坐姿拳擊"></label>
-        <label>上傳 GIF／圖片<input id="exerciseFile" type="file" accept="image/*"></label>
-        <div class="grid">
-          <label>建議分鐘<input id="customMinutes" type="number" value="10"></label>
-          <label>預估消耗 kcal<input id="customBurn" type="number" value="50"></label>
-        </div>
-        <button id="saveExercise" class="primary">儲存到本機運動圖庫</button>
-        <div id="customExerciseList"></div>
-      </details>
+  <div class="card protect-card">
+    <div>
+      <h2>腿部受傷／行動不便保護模式</h2>
+      <p>開啟後排除跑跳、深蹲、負重、快速登階及騎腳踏車。</p>
     </div>
-
-    <aside class="plan-side">
-      <div id="exerciseAdviceCard" class="card"></div>
-      <div id="exerciseImageManager" class="card"></div>
-      <div id="exerciseRecordCard" class="card"></div>
-    </aside>
+    <label class="switch"><input id="protect" type="checkbox"><span></span></label>
   </div>
+
+  <div class="card compact-library">
+    <div class="section-head">
+      <div>
+        <h2>內建運動項目資料庫</h2>
+        <p>點選項目後，顯示訓練規格、動作要領與記錄欄位。</p>
+      </div>
+      <span class="badge">低衝擊優先</span>
+    </div>
+    <div class="intensity-tabs">
+<button class="intensity active" data-level="all">全部</button><button class="intensity" data-level="low">低強度</button><button class="intensity" data-level="mid">中強度</button><button class="intensity" data-level="high">高強度</button>
+</div><div id="exerciseChips" class="chips"></div>
+  </div>
+
+  <div id="selectedExercise"></div>
+
+  <details class="card custom-panel">
+    <summary>＋ 新增或管理自訂運動</summary>
+    <label>運動名稱<input id="exerciseName" placeholder="例如：坐姿拳擊"></label>
+    <label>上傳 GIF／圖片<input id="exerciseFile" type="file" accept="image/*"></label>
+    <div class="grid">
+      <label>建議分鐘<input id="customMinutes" type="number" value="10"></label>
+      <label>預估消耗 kcal<input id="customBurn" type="number" value="50"></label>
+    </div>
+    <button id="saveExercise" class="primary">儲存到本機運動圖庫</button>
+    <div id="customExerciseList"></div>
+  </details>
 </section>
 
 <section id="food" class="page">
@@ -204,30 +196,6 @@
   </div>
 </template>
 
-<script>
-// V3.3 最低限度備援：即使主程式載入失敗，BMI 與分頁仍可操作。
-window.addEventListener('DOMContentLoaded',()=>{
-  const q=id=>document.getElementById(id);
-  const save=q('saveProfile');
-  if(save&&!save.dataset.fallbackBound){
-    save.dataset.fallbackBound='1';
-    save.addEventListener('click',()=>{
-      const h=Number(q('h')?.value)/100,w=Number(q('w')?.value),goal=Number(q('goal')?.value)||1800;
-      if(!h||!w)return;
-      try{localStorage.setItem('profile',JSON.stringify({h:h*100,w,goal,protect:true}));}catch(e){}
-      const b=w/(h*h);if(q('bmi'))q('bmi').textContent=b.toFixed(1);
-      if(q('status'))q('status').textContent=b<18.5?'體重過輕':b<24?'健康體位':b<27?'體重過重':'肥胖';
-    });
-  }
-  document.querySelectorAll('nav button[data-p]').forEach(btn=>{
-    if(btn.dataset.fallbackBound)return;btn.dataset.fallbackBound='1';
-    btn.addEventListener('click',()=>{
-      document.querySelectorAll('nav button[data-p],.page').forEach(x=>x.classList.remove('active'));
-      btn.classList.add('active');document.getElementById(btn.dataset.p)?.classList.add('active');
-    });
-  });
-});
-</script>
-<script src="app.js?v=33"></script>
+<script src="app.js?v=27R"></script>
 </body>
 </html>
