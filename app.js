@@ -112,7 +112,7 @@ function bind(){
 function init(){
  byId('h').value=profile.h||'';byId('w').value=profile.w||'';byId('goal').value=profile.goal||1800;byId('foodRecordDate').value=today();byId('historyDate').value=today();byId('historyMonth').value=monthKey();
  bind();calculateBMI();renderFoodLibrary();renderFoodProgress();renderExercises();renderCustomList();renderHistory(today());renderDailySummary(monthKey());renderMonthly();
- if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=33').catch(()=>{});
  let prompt;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();prompt=e;byId('install').hidden=false});byId('install').addEventListener('click',async()=>{if(prompt){prompt.prompt();await prompt.userChoice;prompt=null}else alert('請從瀏覽器選單選擇加到主畫面');});
 }
 window.addEventListener('DOMContentLoaded',()=>{try{init()}catch(err){console.error(err);const box=document.createElement('div');box.style.cssText='position:fixed;left:12px;right:12px;bottom:82px;z-index:9999;background:#fff3cd;color:#664d03;border:1px solid #ffecb5;border-radius:14px;padding:12px';box.textContent='健管家啟動錯誤：'+err.message;document.body.appendChild(box);}});

@@ -1,5 +1,25 @@
-const C='healthsync-v3-2';
-const A=['./','index.html','styles.css','app.js','manifest.webmanifest','assets/exercise_slow_walk.png','assets/exercise_brisk_walk.png','assets/exercise_side_crunch.png','assets/exercise_seated_boxing.png','assets/icon-192.png','assets/icon-512.png','assets/side-crunch.gif'];
-self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(A).catch(()=>{}))));
-self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==C).map(k=>caches.delete(k))))));
-self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+const CACHE='healthsync-v3-3';
+const CORE=['./','index.html','styles.css?v=33','app.js?v=33','manifest.webmanifest?v=33'];
+self.addEventListener('install',event=>{
+  self.skipWaiting();
+  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE).catch(()=>{})));
+});
+self.addEventListener('activate',event=>{
+  event.waitUntil(Promise.all([
+    caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))),
+    self.clients.claim()
+  ]));
+});
+self.addEventListener('fetch',event=>{
+  const req=event.request;
+  if(req.method!=='GET')return;
+  const url=new URL(req.url);
+  const isCode=req.mode==='navigate'||/\.(?:html|js|css|webmanifest)$/.test(url.pathname);
+  if(isCode){
+    event.respondWith(fetch(req).then(res=>{
+      const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));return res;
+    }).catch(()=>caches.match(req).then(r=>r||caches.match('index.html'))));
+  }else{
+    event.respondWith(caches.match(req).then(r=>r||fetch(req).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));return res;})));
+  }
+});
