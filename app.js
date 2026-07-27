@@ -167,41 +167,89 @@ exportCsv.onclick=()=>{
 };
 
 function exerciseAll(){return [...builtinExercises,...customExercises.map(x=>({name:x.name,level:'custom',tag:'自訂運動',media:x.data,dose:(x.minutes||10)+'分鐘',burn:x.burn||0,steps:['依個人設定完成。'],remind:'依身體狀況量力而為。'}))]}
+
+function intensityLabel(level){return level==='low'?'低強度':level==='mid'?'中強度':level==='high'?'高強度':'自訂'}
+function levelClass(level){return level==='low'?'low':level==='mid'?'mid':level==='high'?'high':'custom'}
+function effectiveMediaFor(ex){return exerciseImageOverrides[ex.name]||ex.media}
+function mediaHTML(ex, cls=''){const m=effectiveMediaFor(ex);const isImg=(m||'').startsWith('data:')||(m||'').includes('/');return isImg?`<img src="${m}" alt="${ex.name}">`:`<div class="emoji ${cls}">${m}</div>`}
+function summaryText(ex){
+  if(ex.name.includes('慢走')) return '姿勢幫助腸胃蠕動、控制血糖起升、燃燒脂肪。';
+  if(ex.name.includes('健走')) return '加速燃脂、提升心肺耐力，建立下肢基礎肌耐力。';
+  if(ex.name.includes('卷腹')||ex.name.includes('核心')) return '精準加強腹腰線條，訓練腹內外斜肌，打造緊緻核心。';
+  if(ex.name.includes('拳擊')) return '提升心肺與上肢協調，透過節奏訓練增加熱量消耗。';
+  if(ex.name.includes('上肢')) return '強化上肢穩定與肌耐力，減少下肢負擔。';
+  if(ex.name.includes('伸展')) return '舒緩緊繃與促進恢復，適合作為收操。';
+  return '依目前身體狀況量力而為。';
+}
+function exerciseQuestion(ex){
+  if(ex.name.includes('卷腹')) return `我可以做卷腹或側身卷腹嗎？`;
+  return `我可以做${ex.name}嗎？`;
+}
+function exerciseSuitability(ex){
+  if(ex.name.includes('卷腹')||ex.name.includes('核心')) return '可以。側身卷腹對腹腰塑形與核心啟動較友善，只要不會對受傷下肢造成出力負擔。';
+  if(ex.name.includes('慢走')) return '可以。慢走屬低衝擊有氧，適合目前復健期作為起點；應以平路、短時段、可分段完成為原則。';
+  if(ex.name.includes('健走')) return '可以，但應建立在慢走後沒有明顯腫脹、疼痛或步態惡化的前提下，先採分段方式進行。';
+  if(ex.name.includes('拳擊')) return '可以，以坐姿版本較適合。重點是提高上肢與心肺刺激，而非增加下肢承重。';
+  if(ex.name.includes('上肢')) return '可以。坐姿上肢訓練能提高活動量，同時避免對受傷小腿與足踝增加壓力。';
+  return '可以，但請以無痛、無明顯腫脹加劇與不影響步態為原則，必要時先與治療師確認。';
+}
+function exerciseBenefits(ex){
+  if(ex.name.includes('卷腹')||ex.name.includes('核心')) return ['安全、低衝擊','加強腰側與核心穩定','有助改善側腰線條與體態姿態'];
+  if(ex.name.includes('慢走')) return ['安全、低衝擊','有助建立每日活動量','有助穩定血糖與燃燒脂肪'];
+  if(ex.name.includes('健走')) return ['提升心肺耐力','提高熱量消耗','建立下肢基礎肌耐力'];
+  if(ex.name.includes('拳擊')) return ['中高熱量消耗','提高心肺與反應節奏','避免下肢衝擊'];
+  if(ex.name.includes('上肢')) return ['增加上肢肌耐力','提高日常活動量','減少下肢負擔'];
+  return ['安全、可調整','可依身體狀況分級','適合持續累積'];
+}
 function renderExerciseLibrary(){
- const all=exerciseAll();
- const filtered=all.map((e,i)=>({e,i})).filter(x=>activeIntensity==='all'||x.e.level===activeIntensity||x.e.level==='custom');
- if(!filtered.some(x=>x.i===selectedExerciseIndex))selectedExerciseIndex=filtered.length?filtered[0].i:0;
- exerciseChips.innerHTML=filtered.map(x=>`<button class="chip ${x.i===selectedExerciseIndex?'selected':''}" data-i="${x.i}"><span class="level-label">${x.e.level==='low'?'低':x.e.level==='mid'?'中':x.e.level==='high'?'高':'自訂'}</span>${x.e.name}</button>`).join('');
- exerciseChips.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{selectedExerciseIndex=+b.dataset.i;renderExerciseLibrary()});
- renderSelectedExercise(all[selectedExerciseIndex]||filtered[0]?.e);
+  const all=exerciseAll();
+  const groups=[['low','低強度'],['mid','中強度'],['high','高強度（保護模式式樣）'],['custom','自訂運動']];
+  const visible=all.map((e,i)=>({...e,idx:i})).filter(x=>activeIntensity==='all'||x.level===activeIntensity||x.level==='custom'&&activeIntensity==='all');
+  if(!visible.some(x=>x.idx===selectedExerciseIndex)) selectedExerciseIndex=visible.length?visible[0].idx:0;
+  let html='';
+  groups.forEach(([level,title])=>{
+    const items=visible.filter(x=>x.level===level || (activeIntensity==='all'&& level==='custom' && x.level==='custom'));
+    if(activeIntensity!=='all' && level!==activeIntensity) return;
+    if(level==='custom' && activeIntensity!=='all') return;
+    if(!items.length) return;
+    html+=`<div class="library-group"><div class="library-group-title ${levelClass(level)}">${title}</div><div class="exercise-card-grid">`;
+    html+=items.map(ex=>`<article class="exercise-card ${ex.idx===selectedExerciseIndex?'selected':''}" data-i="${ex.idx}"><div class="exercise-thumb">${mediaHTML(ex,'emoji')}</div><span class="card-pill ${levelClass(ex.level)}">${intensityLabel(ex.level)}・${ex.tag.replace(/^[低中高]強度・|保護模式・?|復健友善・?|低衝擊・?|中強度・?|高強度・?/g,'').replace('分段心肺','心肺燃脂').replace('坐姿心肺','局部雕塑').replace('上肢循環','上肢循環').replace('核心','局部雕塑')}</span><div class="exercise-title">${ex.name}</div><div class="exercise-sub">${ex.dose}</div><div class="exercise-burn">預估消耗 ${ex.burn} 大卡</div><div class="exercise-summary">${summaryText(ex)}</div><div class="mini-groups"><small>自主訓練組數勾選區（點擊完成各組訓練）：</small><div class="group-buttons"><span>第 1 組</span><span>第 2 組</span><span>第 3 組</span><span>第 4 組</span></div></div><div class="card-footer"><span class="burn-chip">🔥 預估消耗 ${ex.burn} 大卡</span><span class="more">${ex.idx===selectedExerciseIndex?'已選取':'展開詳細動態解說'} ›</span></div></article>`).join('');
+    html+='</div></div>';
+  });
+  exerciseSections.innerHTML=html || '<p class="muted">目前沒有可顯示的運動項目。</p>';
+  exerciseSections.querySelectorAll('.exercise-card').forEach(card=>card.onclick=()=>{selectedExerciseIndex=+card.dataset.i;renderExerciseLibrary()});
+  renderPlanSide();
+}
+function renderPlanSide(){
+  const ex=exerciseAll()[selectedExerciseIndex];
+  if(!ex){exerciseAdviceCard.innerHTML='';exerciseImageManager.innerHTML='';exerciseRecordCard.innerHTML='';return;}
+  renderAdviceCard(ex);renderImageManager(ex);renderRecordCard(ex);
+}
+function renderAdviceCard(ex){
+  exerciseAdviceCard.innerHTML=`<div class="advice-top"><h3 class="advice-title">${exerciseQuestion(ex)}</h3><p>${exerciseSuitability(ex)}</p><div>強度屬於： <span class="intensity-badge">${intensityLabel(ex.level)}</span></div><ul class="check-list">${exerciseBenefits(ex).map(x=>`<li>${x}</li>`).join('')}</ul><div class="note-box">目前仍以不增加小腿腫脹、疼痛、麻木、無力與步態惡化為原則。若運動後 24 小時內明顯變差，請降階或暫停。</div></div>`;
+}
+function presetImages(ex){
+  const defaults=[ex.media,'assets/exercise_seated_boxing.png','assets/exercise_side_crunch.png','assets/exercise_slow_walk.png','assets/exercise_brisk_walk.png'];
+  return [...new Set(defaults.filter(Boolean))];
+}
+function renderImageManager(ex){
+  const m=effectiveMediaFor(ex); const isImg=(m||'').startsWith('data:')||(m||'').includes('/');
+  exerciseImageManager.innerHTML=`<div class="manager-head"><h3 class="manager-title">更換運動圖示</h3><span class="close-x">×</span></div><div class="current-preview"><div class="${isImg?'':'emoji-preview'}">${isImg?`<img src="${m}" alt="${ex.name}">`:m}</div><div><div class="muted">目前：${ex.name}</div><div class="muted" style="margin-top:6px">可上傳 JPG / PNG / WebP / GIF，或直接挑選下方美圖。</div></div></div><label class="upload-tile">上傳目前圖片<br><small>建議尺寸：600×400px 內</small><input id="replaceExerciseImage" type="file" accept="image/gif,image/png,image/jpeg,image/webp"></label><div class="muted" style="margin:10px 0 6px">或選擇精美圖示</div><div id="presetGallery" class="preset-grid">${presetImages(ex).map((src,i)=>`<div class="preset-item ${i===0?'selected':''}" data-src="${src}"><img src="${src}"></div>`).join('')}</div><div class="manager-actions"><button id="resetExerciseImage" class="btn-outline">恢復預設圖示</button><button id="saveExerciseImage" class="btn-accent">儲存變更</button></div>`;
+  let chosenSrc=presetImages(ex)[0]||ex.media;
+  presetGallery.querySelectorAll('.preset-item').forEach(item=>item.onclick=()=>{presetGallery.querySelectorAll('.preset-item').forEach(x=>x.classList.remove('selected'));item.classList.add('selected');chosenSrc=item.dataset.src});
+  saveExerciseImage.onclick=()=>{
+    const f=replaceExerciseImage.files[0];
+    if(f){if(f.size>3*1024*1024)return alert('圖片請小於 3MB'); const r=new FileReader(); r.onload=()=>{exerciseImageOverrides[ex.name]=r.result; set('exerciseImageOverrides',exerciseImageOverrides); renderPlanSide(); renderExerciseLibrary(); alert('已更換此運動圖示');}; r.readAsDataURL(f); return;}
+    exerciseImageOverrides[ex.name]=chosenSrc; set('exerciseImageOverrides',exerciseImageOverrides); renderPlanSide(); renderExerciseLibrary(); alert('已儲存變更');
+  };
+  resetExerciseImage.onclick=()=>{delete exerciseImageOverrides[ex.name]; set('exerciseImageOverrides',exerciseImageOverrides); renderPlanSide(); renderExerciseLibrary(); alert('已恢復預設圖示')};
+}
+function renderRecordCard(ex){
+  const m=effectiveMediaFor(ex); const isImg=(m||'').startsWith('data:')||(m||'').includes('/');
+  exerciseRecordCard.innerHTML=`<h3 class="record-title">運動記錄與詳細說明</h3><div class="record-head"><div class="record-thumb">${isImg?`<img src="${m}" alt="${ex.name}">`:`<div class="emoji">${m}</div>`}</div><div><h4>${ex.name}</h4><p>${ex.dose}｜預估消耗 ${ex.burn} 大卡</p></div></div><ol class="record-list">${ex.steps.map(x=>`<li>${x}</li>`).join('')}</ol><div class="grid"><label>實際運動分鐘<input id="recordMinutes" type="number" value="${parseInt(ex.dose)||10}"></label><label>本次消耗 kcal<input id="recordBurn" type="number" value="${ex.burn}"></label></div><div class="grid record-date-box"><label>實際運動日期<input id="exerciseRecordDate" type="date" value="${today()}"></label><label>實際運動時間<input id="exerciseRecordTime" type="time"></label></div><div class="record-warm">💡 貼心提醒<br>${ex.remind}</div><button id="recordExercise" class="primary record-save">記錄本次運動</button>`;
+  recordExercise.onclick=()=>{exerciseLogs.push({date:exerciseRecordDate.value||today(),time:exerciseRecordTime.value||'',name:ex.name,minutes:+recordMinutes.value||0,burn:+recordBurn.value||0}); set('exerciseLogs',exerciseLogs); renderMonthly(); renderHistory(exerciseRecordDate.value||today()); renderDailySummary((exerciseRecordDate.value||today()).slice(0,7)); alert('已記錄本次運動');};
 }
 document.querySelectorAll('.intensity').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.intensity').forEach(x=>x.classList.remove('active'));btn.classList.add('active');activeIntensity=btn.dataset.level;renderExerciseLibrary()});
-function renderSelectedExercise(e){
- if(!e){selectedExercise.innerHTML='';return}
- const effectiveMedia=exerciseImageOverrides[e.name]||e.media;const isImg=(effectiveMedia||'').startsWith('data:')||(effectiveMedia||'').includes('/');
- const media=isImg?`<img src="${effectiveMedia}">`:`<span style="font-size:52px">${effectiveMedia}</span>`;
- selectedExercise.innerHTML=`<article class="exercise-detail">
- <div class="exercise-head"><div class="exercise-media">${media}</div><div><span class="badge">${e.tag}</span><h3>${e.name}</h3><b>${e.dose}</b><p>預估消耗：約 ${e.burn} kcal</p></div></div>
- <div class="exercise-spec"><b>訓練規格與動作要領</b><ol>${e.steps.map(x=>`<li>${x}</li>`).join('')}</ol>
- <div class="grid"><label>實際運動分鐘<input id="recordMinutes" type="number" value="${parseInt(e.dose)||10}"></label><label>本次消耗 kcal<input id="recordBurn" type="number" value="${e.burn}"></label></div><div class="grid record-date-box"><label>實際運動日期<input id="exerciseRecordDate" type="date" value="${today()}"></label><label>實際運動時間<input id="exerciseRecordTime" type="time"></label></div>
- <p class="warm">溫馨提醒：${e.remind}</p>
- <div class="replace-image-box">
-   <label>更換此運動圖示<input id="replaceExerciseImage" type="file" accept="image/gif,image/png,image/jpeg,image/webp"></label>
-   <div class="grid"><button id="saveExerciseImage" class="soft">套用上傳圖片</button><button id="resetExerciseImage" class="soft">恢復預設圖示</button></div>
- </div>
- <button id="recordExercise" class="primary">記錄本次運動</button></div></article>`;
- recordExercise.onclick=()=>{
-   exerciseLogs.push({date:exerciseRecordDate.value||today(),time:exerciseRecordTime.value||'',name:e.name,minutes:+recordMinutes.value||0,burn:+recordBurn.value||0});
-   set('exerciseLogs',exerciseLogs);renderMonthly();renderHistory(exerciseRecordDate.value||today());renderDailySummary((exerciseRecordDate.value||today()).slice(0,7));alert('已記錄本次運動');
- };
- saveExerciseImage.onclick=()=>{
-   const f=replaceExerciseImage.files[0];if(!f)return alert('請先選擇圖片或 GIF');
-   if(f.size>3*1024*1024)return alert('圖片請小於 3MB');
-   const r=new FileReader();r.onload=()=>{exerciseImageOverrides[e.name]=r.result;set('exerciseImageOverrides',exerciseImageOverrides);renderSelectedExercise(e);alert('已更換此運動圖示')};r.readAsDataURL(f);
- };
- resetExerciseImage.onclick=()=>{delete exerciseImageOverrides[e.name];set('exerciseImageOverrides',exerciseImageOverrides);renderSelectedExercise(e);alert('已恢復預設圖示')};
-
-}
 saveExercise.onclick=()=>{
  const f=exerciseFile.files[0],name=exerciseName.value.trim();
  if(!f||!name)return alert('請輸入名稱並選擇圖片或 GIF');
